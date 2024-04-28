@@ -20,9 +20,15 @@ class SimpleHandler(BaseHTTPRequestHandler):
         if self.path == '/':
             self.contentType = "text/html"
             self.path = PATH + 'index.html'
-        elif self.path == '/script.js':
+        elif self.path == '/statistik':
+            self.contentType = "text/html"
+            self.path = PATH + 'statistik.html'
+        elif self.path == '/indstillinger':
+            self.contentType = "text/html"
+            self.path = PATH + 'indstillinger.html'
+        elif self.path == '/indstillinger.js':
             self.contentType = "application/javascript"
-            self.path = PATH + 'script.js'
+            self.path = PATH + 'indstillinger.js'
         elif self.path == '/style.css':
             self.contentType = "text/css"
             self.path = PATH + 'style.css'

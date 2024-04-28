@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Bedre S&oslash;vn</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+
+        <header>
+            <h1><a href="/">Bedre S&oslash;vn</a></h1>
+        </header>
+        <nav>
+            <a href="/">Forside</a>
+            <a href="/statistik">Statistik</a>
+            <a href="/indstillinger">Indstillinger</a>
+        </nav>
+
+        <div class="content">
+            <section>
+                <h2>Indstillinger</h2>
+
+                <div>
+                    <form action="#">
+                        <legend>Alarm indstillinger</legend>
+                        <label for="morningTime">V&aelig;kke alarm</label>
+                        <input type="time" id="time1" name="time1"><br><br>
+                        
+                        <label for="nightTime">Sove alarm</label>
+                        <input type="time" id="time2" name="time2"><br><br>
+                        
+                        <label for="">De valgte tidspunkter giver dig X timers s&oslash;vn.</label>
+                        <input type="submit" value="Opdater alarm">
+                    </form>
+    
+                    <form action="#">
+                        <legend>Tids indstillinger</legend>
+    
+                        <label for="" id="manualTimeDescription">Passer urets tid ikke? Opdater tiden automatisk til ___ eller indstil den manuelt.</label>
+                        
+                        <label for="manualTimeBox">Bestem urets tid manuelt</label>
+                        <input type="checkbox" id="manualTimeBox" name="manualTimeBox" checked="false">
+    
+                        <label for="manualTime">Indstil tid manuelt her</label>
+                        <input type="time" id="manualTime" name="manualTime" disabled><br><br>
+    
+                        <input type="submit" value="Updater tid">
+                    </form>
+                </div>
+            </section>
+        </div>       
+
+        <footer class="footer">
+            <p>Designed by <a href="https://github.com/Culf-B">Ulf Birk-Hansen</a></p>
+        </footer>
+
+        <script src="indstillinger.js"></script>
+    </body>
+</html>

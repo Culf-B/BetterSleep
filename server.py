@@ -47,4 +47,14 @@ class SimpleHandler(BaseHTTPRequestHandler):
 
     # Handle post with form data
     def do_POST(self):
-        pass
+        form = cgi.FieldStorage(
+            fp=self.rfile,
+            headers=self.headers,
+            environ={'REQUEST_METHOD': 'POST',
+                     'CONTENT_TYPE': self.headers['Content-Type'],
+                     }
+        )
+        print("Post request: " + form)
+        self.send_response(301)
+        self.send_header('Location','/indstillinger')
+        self.end_headers()

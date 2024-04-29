@@ -78,6 +78,7 @@ class SimpleHandler(BaseHTTPRequestHandler):
         self.send_header('Location','/indstillinger')
         self.end_headers()
 
+# Return the latest form / setting data recieved in the forms on the settings page
 def getLatestData():
     if latestData["dataChanged"]:
         latestData["dataChanged"] = False

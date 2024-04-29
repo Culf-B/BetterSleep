@@ -1,4 +1,5 @@
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+import threading
 import cgi
 import json
 
@@ -8,14 +9,28 @@ with open("serverSetup.json", "r") as f:
     PATH = setupData["PATH"]
     PORT = setupData["PORT"]
 
+# Latest alarm and time data
+latestData = {
+    "morningTime": "--:--",
+    "nightTime": "--:--",
+    "autoTime": "--:--",
+    "manualTime": "--:--",
+    "dataChanged": False
+}
+
 class Server():
+    def __init__(self):
+        self.server = ThreadingHTTPServer(('', PORT), SimpleHandler)
+        self.server_thread = threading.Thread(target=self.server.serve_forever)
+        self.server_thread.daemon = True
+
     def serve(self):
-        self.server = HTTPServer(('', PORT), SimpleHandler)
-        self.server.serve_forever()
+        self.server_thread.start()
 
 class SimpleHandler(BaseHTTPRequestHandler):
     # Handle get request for file
     def do_GET(self):
+        self.tempStatus = 200
         # Files being served
         if self.path == '/':
             self.contentType = "text/html"
@@ -32,18 +47,16 @@ class SimpleHandler(BaseHTTPRequestHandler):
         elif self.path == '/style.css':
             self.contentType = "text/css"
             self.path = PATH + 'style.css'
-        # Respond with file if it exists and with a 404 if it does not exist
-        try:
-            file_to_open = open(self.path).read()
-            self.send_response(200)
-            self.send_header('Content-type', self.contentType)
-            self.end_headers()
-            self.wfile.write(bytes(file_to_open, 'utf-8'))
-        except:
-            self.send_response(404)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
-            self.wfile.write(b'404 - Not Found')
+        else:
+            self.tempStatus = 404
+            self.contentType = "text/html"
+            self.path = PATH + '404.html'
+
+        file_to_open = open(self.path).read()
+        self.send_response(self.tempStatus)
+        self.send_header('Content-type', self.contentType)
+        self.end_headers()
+        self.wfile.write(bytes(file_to_open, 'utf-8'))
 
     # Handle post with form data
     def do_POST(self):
@@ -54,7 +67,22 @@ class SimpleHandler(BaseHTTPRequestHandler):
                      'CONTENT_TYPE': self.headers['Content-Type'],
                      }
         )
-        print("Post request: " + form)
+        # Upate data
+        latestData["morningTime"] = form.getvalue("mTime")
+        latestData["nightTime"] = form.getvalue("aTime")
+        latestData["autoTime"] = form.getvalue("autoTime")
+        latestData["manualTime"] = form.getvalue("manualTime")
+        latestData["dataChanged"] = True
+
         self.send_response(301)
         self.send_header('Location','/indstillinger')
         self.end_headers()
+
+def getLatestData():
+    if latestData["dataChanged"]:
+        latestData["dataChanged"] = False
+        returnData = latestData.copy()
+        returnData["dataChanged"] = True
+        return returnData
+    else:
+        return latestData

@@ -33,11 +33,11 @@
                 <div>
                     <form method="POST" action="#">
                         <legend>Alarm indstillinger</legend>
-                        <label for="morningTime">V&aelig;kke alarm</label>
-                        <input type="time" id="time1" name="time1"><br><br>
+                        <label for="mTime">V&aelig;kke alarm</label>
+                        <input type="time" id="time1" name="mTime"><br><br>
                         
-                        <label for="nightTime">Sove alarm</label>
-                        <input type="time" id="time2" name="time2"><br><br>
+                        <label for="aTime">Sove alarm</label>
+                        <input type="time" id="time2" name="aTime"><br><br>
                         
                         <label for="">De valgte tidspunkter giver dig X timers s&oslash;vn.</label>
                         <input type="submit" value="Opdater alarm">
@@ -48,13 +48,13 @@
     
                         <label for="" id="manualTimeDescription">Passer urets tid ikke? Opdater tiden automatisk til ___ eller indstil den manuelt.</label>
                         
-                        <label for="manualTimeBox">Bestem urets tid manuelt</label>
-                        <input type="checkbox" id="manualTimeBox" name="manualTimeBox" checked="false">
+                        <label for="autoTime">Automatisk tid</label>
+                        <input type="time" id="autoTime" name="autoTime"><br><br>
+
+                        <label for="manualTime" >Indstil tid manuelt her</label>
+                        <input type="time" id="manualTime" name="manualTime"><br><br>
     
-                        <label for="manualTime">Indstil tid manuelt her</label>
-                        <input type="time" id="manualTime" name="manualTime" disabled><br><br>
-    
-                        <input type="submit" value="Updater tid">
+                        <input type="submit" value="Opdater tid">
                     </form>
                 </div>
             </section>

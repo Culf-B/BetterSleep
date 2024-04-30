@@ -9,10 +9,14 @@ with open("serverSetup.json", "r") as f:
     PATH = setupData["PATH"]
     PORT = setupData["PORT"]
 
+# Load settings
+with open("settings.json", "r") as f:
+    settings = json.load(f)
+
 # Latest alarm and time data
 latestData = {
-    "morningTime": "--:--",
-    "nightTime": "--:--",
+    "morningTime": settings["morningTime"],
+    "nightTime": settings["nightTime"],
     "autoTime": "--:--",
     "manualTime": "--:--",
     "dataChanged": False
@@ -91,6 +95,15 @@ class SimpleHandler(BaseHTTPRequestHandler):
         latestData["manualTime"] = form.getvalue("manualTime")
         latestData["dataChanged"] = True
 
+        # Save data to file
+        dataToSave = {
+            "morningTime": latestData["morningTime"],
+            "nightTime": latestData["nightTime"]
+        }
+        with open("settings.json", "w") as f:
+            f.write(json.dumps(dataToSave))
+
+        # Respond with redirect
         self.send_response(301)
         self.send_header('Location','/indstillinger')
         self.end_headers()
@@ -104,3 +117,8 @@ def getLatestData():
         return returnData
     else:
         return latestData
+    
+
+def updateLatest(newData):
+    global latestData
+    latestData = newData.copy()

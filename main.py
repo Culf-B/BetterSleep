@@ -1,5 +1,6 @@
 from server import Server, getLatestData
-from time import sleep
+import time
+from alarm import Alarm
 
 # Initialize server object
 httpServer = Server()
@@ -7,10 +8,25 @@ httpServer = Server()
 # Start the server (blocking the proces)
 httpServer.serve()
 
+# Alarm setup
+settings = getLatestData() # Get alarm settings loaded by server
+alarmSettings = {}
+alarms = {}
+alarmKeys = ["morningTime", "nightTime"]
+for key in alarmKeys:
+    if settings[key] != None:
+        alarmSettings[key] = settings[key].split(":")
+        alarms[key] = Alarm(key, "Light" if key == "nightTime" else "Sound", int(alarmSettings[key][0]), int(alarmSettings[key][1]))
+    else:
+        alarms[key] = Alarm(key, "Light" if key == "nightTime" else "Sound")
+
+# Notifications (alarms)
+notifQueue = []
+notifGoing = False
+
 # Main loop main thread
 while True:
-    
-    # Listen for button / switch inputs
+    # Listen for switch inputs
 
     # Log phone status
 
@@ -23,19 +39,44 @@ while True:
     # Update settings if data has been changed
     if settingData["dataChanged"]:
         # Update alarm times
-
+        for key in alarmKeys:
+            if settings[key] != None:
+                alarmSettings[key] = settings[key].split(":")
+                alarms[key].setTime(int(alarmSettings[key][0]), int(alarmSettings[key][1]))
+            else:
+                alarms[key].setTime()
 
         # Update rtc time (or just time settings if it is too hard to implement rtc)
 
         pass
 
     # Update alarm status (there should be an alarm class keeping track of every alarm)
+    currentTime = time.localtime()
+    for alarm in alarms.values():
+        if alarm.checkRing(int(time.strftime("%H", currentTime)), int(time.strftime("%M", currentTime))):
+            notifQueue.append(alarm)
 
-    
+    # Update notification
+    if len(notifQueue) > 0:
+        notifGoing = True
+        
+        # Display notification on display
+
+        # Choose how to notify
+        if notifQueue[0].notifStyle == "Light": # Flash display backlight
+            pass
+        elif notifQueue[0].notifStyle == "Sound": # Beep the beeper
+            pass
+
+        if False: # Check if dismiss button is pressed
+            del notifQueue[0] # Delete the notification from the queue
+    else:
+        notifGoing = False
 
     # Update display
-
+    if not notifGoing:
+        pass # Display time and some icons
 
 
     # Delay for server thread to do its tasks (delay might have to be lower myb .1 for button to work)
-    sleep(1)
+    time.sleep(1)

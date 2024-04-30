@@ -1,6 +1,8 @@
 from server import Server, getLatestData
 import time
 from alarm import Alarm
+from lib import lcdInterface
+from random import randint
 
 # Initialize server object
 httpServer = Server()
@@ -23,6 +25,14 @@ for key in alarmKeys:
 # Notifications (alarms)
 notifQueue = []
 notifGoing = False
+
+# Devices setup
+
+# Display color
+defaultColor = [255, 255, 255]
+flashColors = [[255, 0, 0], [255, 255, 255], [0, 0, 0]]
+flashColorIndex = 0
+lcdInterface.setRGB(defaultColor[0], defaultColor[1], defaultColor[2])
 
 # Main loop main thread
 while True:
@@ -59,12 +69,16 @@ while True:
     # Update notification
     if len(notifQueue) > 0:
         notifGoing = True
-        
+
         # Display notification on display
 
         # Choose how to notify
         if notifQueue[0].notifStyle == "Light": # Flash display backlight
-            pass
+            lcdInterface.setRGB(flashColors[flashColorIndex][0], flashColors[flashColorIndex][1], flashColors[flashColorIndex][2])
+            flashColorIndex += 1
+            if flashColorIndex >= len(flashColors):
+                flashColorIndex = 0
+
         elif notifQueue[0].notifStyle == "Sound": # Beep the beeper
             pass
 
@@ -77,6 +91,5 @@ while True:
     if not notifGoing:
         pass # Display time and some icons
 
-
     # Delay for server thread to do its tasks (delay might have to be lower myb .1 for button to work)
-    time.sleep(1)
+    time.sleep(0.1)

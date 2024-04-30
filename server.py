@@ -31,6 +31,8 @@ class SimpleHandler(BaseHTTPRequestHandler):
     # Handle get request for file
     def do_GET(self):
         self.tempStatus = 200
+        self.tempDoOpenfile = True
+        self.tempUploadContent = None
         # Files being served
         if self.path == '/':
             self.contentType = "text/html"
@@ -47,16 +49,32 @@ class SimpleHandler(BaseHTTPRequestHandler):
         elif self.path == '/style.css':
             self.contentType = "text/css"
             self.path = PATH + 'style.css'
+        # Resources being served
+        elif self.path == '/alarmData':
+            self.contentType = 'text/json'
+            self.tempDoOpenfile = False
+            self.tempUploadContent = {
+                "morningTime": latestData["morningTime"],
+                "nightTime": latestData["nightTime"]
+            }
+            print(self.tempUploadContent)
+            
+        # Error handling
         else:
             self.tempStatus = 404
             self.contentType = "text/html"
             self.path = PATH + '404.html'
 
-        file_to_open = open(self.path).read()
         self.send_response(self.tempStatus)
         self.send_header('Content-type', self.contentType)
         self.end_headers()
-        self.wfile.write(bytes(file_to_open, 'utf-8'))
+        
+        # Read and respond with file or respond with some data
+        if self.tempDoOpenfile:
+            file_to_open = open(self.path).read()
+            self.wfile.write(bytes(file_to_open, 'utf-8'))
+        else:
+            self.wfile.write(bytes(self.tempUploadContent, 'utf-8'))
 
     # Handle post with form data
     def do_POST(self):

@@ -15,4 +15,11 @@ function updateClocks() {
     // Form update describtion text time
     document.getElementById("manualTimeDescription").innerHTML = `Passer urets tid ikke? Opdater tiden automatisk til ${time} eller indstil den manuelt.`
 }
+
+function setCurrentAlarmTimes() {
+    fetch("/alarmData")
+        .then((response) => {response.json()})
+        .then((json) => console.log(json))
+}
+
 setInterval(updateClocks, 1000);

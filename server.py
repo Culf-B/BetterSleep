@@ -51,13 +51,12 @@ class SimpleHandler(BaseHTTPRequestHandler):
             self.path = PATH + 'style.css'
         # Resources being served
         elif self.path == '/alarmData':
-            self.contentType = 'text/json'
+            self.contentType = 'application/json'
             self.tempDoOpenfile = False
-            self.tempUploadContent = {
+            self.tempUploadContent = json.dumps({
                 "morningTime": latestData["morningTime"],
                 "nightTime": latestData["nightTime"]
-            }
-            print(self.tempUploadContent)
+            })
             
         # Error handling
         else:

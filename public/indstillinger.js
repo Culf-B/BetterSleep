@@ -16,10 +16,13 @@ function updateClocks() {
     document.getElementById("manualTimeDescription").innerHTML = `Passer urets tid ikke? Opdater tiden automatisk til ${time} eller indstil den manuelt.`
 }
 
-function setCurrentAlarmTimes() {
-    fetch("/alarmData")
-        .then((response) => {response.json()})
-        .then((json) => console.log(json))
+async function setCurrentAlarmTimes() {
+    response = await fetch("/alarmData");
+    json = await response.json();
+    
+    // Get inputs by id and set their value to the currently selected alarm times
+    document.getElementById("time1").value = json.morningTime;
+    document.getElementById("time2").value = json.nightTime;
 }
 
 setInterval(updateClocks, 1000);

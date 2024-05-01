@@ -63,7 +63,8 @@ with open("ultrasonicCalibration.json", "r") as f:
     calibrationReadings = json.load(f)["readings"]
 # If the reading is between these two, there is no phone present
 noPhone = [min(calibrationReadings), max(calibrationReadings)]
-ultrasonicAllowedVariation = 0.2
+print(noPhone)
+ultrasonicAllowedVariation = 0.5
 
 # Interval
 ultrasonicInterval = 10 # Seconds between readings
@@ -75,6 +76,7 @@ phoneReadingData = []
 
 # Set default rgb color as loading is now done
 lcdInterface.setRGB(defaultColor[0], defaultColor[1], defaultColor[2])
+lcdInterface.setText("") # Clear display
 
 # Main loop main thread
 while True:
@@ -82,9 +84,12 @@ while True:
 
     # Log phone status
     if time.time() > lastReadingTimestamp + ultrasonicInterval:
-        tempUltrasonicReading = ultrasonicReader.distance()
-        if tempUltrasonicReading < noPhone[0] - ultrasonicAllowedVariation or tempUltrasonicReading > [noPhone[1]] + ultrasonicAllowedVariation:
+        tempUltrasonicReading = ultrasonicReader.distance(GPIO_TRIGGER, GPIO_ECHO)
+        
+        if tempUltrasonicReading < noPhone[0] - ultrasonicAllowedVariation or tempUltrasonicReading > noPhone[1] + ultrasonicAllowedVariation:
             phonePresent = True
+        else:
+       	    phonePresent = False
             
             # Record this event
 
@@ -133,10 +138,12 @@ while True:
             del notifQueue[0] # Delete the notification from the queue
     else:
         notifGoing = False
-
+        
     # Update display
     if not notifGoing:
-        lcdInterface.setText_norefresh(time.strftime(time.localtime(), "Klokken er %H:%M") + "\n" + "Telefon tilstede" if not noPhone else "Telefon mangler")
+        phoneText = "Telefon tilstede" if phonePresent else "Telefon mangler"
+        lcdInterface.setText_norefresh(time.strftime("%H:%M", time.localtime()) + "\n" + phoneText)
 
     # Delay for server thread to do its tasks (delay might have to be lower myb .1 for button to work)
     time.sleep(0.1)
+

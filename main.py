@@ -1,8 +1,14 @@
 from server import Server, getLatestData
 import time
 from alarm import Alarm
-from lib import lcdInterface
+from lib import lcdInterface, ultrasonicReader
 from random import randint
+import os
+import json
+import RPi.GPIO as GPIO
+
+#GPIO Mode (BOARD / BCM)
+GPIO.setmode(GPIO.BCM)
 
 # Initialize server object
 httpServer = Server()
@@ -30,8 +36,44 @@ notifGoing = False
 
 # Display color
 defaultColor = [255, 255, 255]
+loadColor = [0, 0, 255]
 flashColors = [[255, 0, 0], [255, 255, 255], [0, 0, 0]]
 flashColorIndex = 0
+lcdInterface.setRGB(loadColor[0], loadColor[1], loadColor[2])
+
+# Display loading screen
+lcdInterface.setText("Starter...")
+
+# Distance sensor
+
+#set GPIO Pins
+GPIO_TRIGGER = 18
+GPIO_ECHO = 24
+
+#set GPIO direction (IN / OUT)
+GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
+GPIO.setup(GPIO_ECHO, GPIO.IN)
+
+# Check if calibration file exists and calibrate if it doesn't exsist
+if not os.path.isfile("ultrasonicCalibration.json"):
+    lcdInterface.setText("Kalibrerer...\nFJERN MOBIL!")
+    os.system("python calibrateDistance.py")
+# os.system should run on same proces, so calibration should happen before continueing and file should exsist
+with open("ultrasonicCalibration.json", "r") as f:
+    calibrationReadings = json.load(f)["readings"]
+# If the reading is between these two, there is no phone present
+noPhone = [min(calibrationReadings), max(calibrationReadings)]
+ultrasonicAllowedVariation = 0.2
+
+# Interval
+ultrasonicInterval = 10 # Seconds between readings
+lastReadingTimestamp = 0 # Timestamp (seconds since epoch of last reading)
+
+# Phone data
+phonePresent = False
+phoneReadingData = []
+
+# Set default rgb color as loading is now done
 lcdInterface.setRGB(defaultColor[0], defaultColor[1], defaultColor[2])
 
 # Main loop main thread
@@ -39,6 +81,12 @@ while True:
     # Listen for switch inputs
 
     # Log phone status
+    if time.time() > lastReadingTimestamp + ultrasonicInterval:
+        tempUltrasonicReading = ultrasonicReader.distance()
+        if tempUltrasonicReading < noPhone[0] - ultrasonicAllowedVariation or tempUltrasonicReading > [noPhone[1]] + ultrasonicAllowedVariation:
+            phonePresent = True
+            
+            # Record this event
 
     # Listen for network changes if hotspot has been turned on
 
@@ -58,8 +106,6 @@ while True:
 
         # Update rtc time (or just time settings if it is too hard to implement rtc)
 
-        pass
-
     # Update alarm status (there should be an alarm class keeping track of every alarm)
     currentTime = time.localtime()
     for alarm in alarms.values():
@@ -71,6 +117,7 @@ while True:
         notifGoing = True
 
         # Display notification on display
+        lcdInterface.setText(notifQueue[0].name)
 
         # Choose how to notify
         if notifQueue[0].notifStyle == "Light": # Flash display backlight
@@ -89,7 +136,7 @@ while True:
 
     # Update display
     if not notifGoing:
-        pass # Display time and some icons
+        lcdInterface.setText_norefresh(time.strftime(time.localtime(), "Klokken er %H:%M") + "\n" + "Telefon tilstede" if not noPhone else "Telefon mangler")
 
     # Delay for server thread to do its tasks (delay might have to be lower myb .1 for button to work)
     time.sleep(0.1)

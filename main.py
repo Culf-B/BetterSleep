@@ -36,6 +36,7 @@ notifGoing = False
 
 # Display color
 defaultColor = [255, 255, 255]
+offColor = [0, 0, 0]
 loadColor = [0, 0, 255]
 flashColors = [[255, 0, 0], [255, 255, 255], [0, 0, 0]]
 flashColorIndex = 0
@@ -49,10 +50,20 @@ lcdInterface.setText("Starter...")
 #set GPIO Pins
 GPIO_TRIGGER = 15
 GPIO_ECHO = 24
+GPIO_BUTTON = 17
+GPIO_SWITCH_1 = 27
+GPIO_SWITCH_2 = 22
+GPIO_BUZZER = 23
+
+buzzerState = False
 
 #set GPIO direction (IN / OUT)
 GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
 GPIO.setup(GPIO_ECHO, GPIO.IN)
+GPIO.setup(GPIO_BUZZER, GPIO.OUT)
+GPIO.setup(GPIO_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(GPIO_SWITCH_1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(GPIO_SWITCH_2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Check if calibration file exists and calibrate if it doesn't exsist
 if not os.path.isfile("ultrasonicCalibration.json"):
@@ -78,25 +89,50 @@ phoneReadingData = []
 lcdInterface.setRGB(defaultColor[0], defaultColor[1], defaultColor[2])
 lcdInterface.setText("") # Clear display
 
+# Function to update phonedata with a new day
+def addDayToData():
+    with open("phoneData.json", "r") as f:
+        data = json.load(f)
+    
+    data["days"].append(
+        {
+            "morningTime": alarmSettings["morningTime"],
+            "nightTime": alarmSettings["nightTime"],
+            "removed": [],
+            "added": []
+        }
+    )
+
+    with open("phoneData.json", "w") as f:
+        json.dump(data, f)
+
+# Get current date
+today = time.localtime().tm_mday
+addDayToData()
+
 # Main loop main thread
 while True:
     # Listen for switch inputs
 
     # Log phone status
-    if time.time() > lastReadingTimestamp + ultrasonicInterval:
-        tempUltrasonicReading = ultrasonicReader.distance(GPIO_TRIGGER, GPIO_ECHO)
-        
-        if tempUltrasonicReading < noPhone[0] - ultrasonicAllowedVariation or tempUltrasonicReading > noPhone[1] + ultrasonicAllowedVariation:
-            phonePresent = True
-        else:
-       	    phonePresent = False
-            
-            # Record this event
-
-    # Listen for network changes if hotspot has been turned on
-
-
-    # if hotspot turned on???:
+    tempUltrasonicReading = ultrasonicReader.distance(GPIO_TRIGGER, GPIO_ECHO)
+    
+    if tempUltrasonicReading < noPhone[0] - ultrasonicAllowedVariation or tempUltrasonicReading > noPhone[1] + ultrasonicAllowedVariation:
+        if not phonePresent:
+            with open("phoneData.json", "r") as f:
+                data = json.load(f)
+            data["days"][-1]["added"].append(time.strftime("%H:%M", time.localtime()))
+            with open("phoneData.json", "w") as f:
+                json.dump(data, f)
+        phonePresent = True
+    else:
+        if phonePresent:
+            with open("phoneData.json", "r") as f:
+                data = json.load(f)
+            data["days"][-1]["removed"].append(time.strftime("%H:%M", time.localtime()))
+            with open("phoneData.json", "w") as f:
+                json.dump(data, f)
+        phonePresent = False
 
     settingData = getLatestData()
     # Update settings if data has been changed
@@ -108,8 +144,6 @@ while True:
                 alarms[key].setTime(int(alarmSettings[key][0]), int(alarmSettings[key][1]))
             else:
                 alarms[key].setTime()
-
-        # Update rtc time (or just time settings if it is too hard to implement rtc)
 
     # Update alarm status (there should be an alarm class keeping track of every alarm)
     currentTime = time.localtime()
@@ -132,18 +166,35 @@ while True:
                 flashColorIndex = 0
 
         elif notifQueue[0].notifStyle == "Sound": # Beep the beeper
-            pass
+            if buzzerState == True:
+                buzzerState = False
+                GPIO.output(GPIO_BUZZER, False)
+            else:
+                buzzerState = True
+                GPIO.output(GPIO_BUZZER, True)
 
-        if False: # Check if dismiss button is pressed
+        if not GPIO.input(GPIO_BUTTON): # Check if dismiss button is pressed
             del notifQueue[0] # Delete the notification from the queue
+            GPIO.output(GPIO_BUZZER, False)
+            buzzerState = False
     else:
         notifGoing = False
         
     # Update display
     if not notifGoing:
+
+        # Determine displayBackground on/off
+        if not GPIO.input(GPIO_SWITCH_1):
+            lcdInterface.setRGB(offColor[0], offColor[1], offColor[2])
+        else:
+            lcdInterface.setRGB(defaultColor[0], defaultColor[1], defaultColor[2])
+
         phoneText = "Telefon tilstede" if phonePresent else "Telefon mangler"
         lcdInterface.setText_norefresh(time.strftime("%H:%M", time.localtime()) + "\n" + phoneText)
 
+    # If it is a new day, add a new day to phonedata
+    if time.localtime().tm_mday != today:
+        addDayToData()
+
     # Delay for server thread to do its tasks (delay might have to be lower myb .1 for button to work)
     time.sleep(0.1)
-

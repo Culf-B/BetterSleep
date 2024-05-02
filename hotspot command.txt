@@ -1,0 +1,9 @@
+Command for creating wifi hotspot
+
+
+
+$ sudo nmcli device wifi hotspot ssid <hotspot name> password <hotspot password> ifname wlan0
+
+
+
+https://www.raspberrypi.com/tutorials/host-a-hotel-wifi-hotspot/

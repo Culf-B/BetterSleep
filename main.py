@@ -47,7 +47,7 @@ lcdInterface.setText("Starter...")
 # Distance sensor
 
 #set GPIO Pins
-GPIO_TRIGGER = 18
+GPIO_TRIGGER = 15
 GPIO_ECHO = 24
 
 #set GPIO direction (IN / OUT)

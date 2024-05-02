@@ -6,6 +6,7 @@ from random import randint
 import os
 import json
 import RPi.GPIO as GPIO
+from subprocess import check_output
 
 #GPIO Mode (BOARD / BCM)
 GPIO.setmode(GPIO.BCM)
@@ -56,6 +57,8 @@ GPIO_SWITCH_2 = 22
 GPIO_BUZZER = 23
 
 buzzerState = False
+switch1state = False
+switch2state = False
 
 #set GPIO direction (IN / OUT)
 GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
@@ -184,13 +187,27 @@ while True:
     if not notifGoing:
 
         # Determine displayBackground on/off
-        if not GPIO.input(GPIO_SWITCH_1):
-            lcdInterface.setRGB(offColor[0], offColor[1], offColor[2])
-        else:
-            lcdInterface.setRGB(defaultColor[0], defaultColor[1], defaultColor[2])
+        switch1pin = GPIO.input(GPIO_SWITCH_1)
+        if switch1pin != switch1state:
+            switch1state = switch1pin
+            if not switch1pin:
+                lcdInterface.setRGB(offColor[0], offColor[1], offColor[2])
+            else:
+                lcdInterface.setRGB(defaultColor[0], defaultColor[1], defaultColor[2])
 
         phoneText = "Telefon tilstede" if phonePresent else "Telefon mangler"
-        lcdInterface.setText_norefresh(time.strftime("%H:%M", time.localtime()) + "\n" + phoneText)
+        switch2pin = GPIO.input(GPIO_SWITCH_2)
+        if switch2pin != switch2state:
+            switch2state = switch2pin
+            if not switch2pin:
+                lcdInterface.setText(time.strftime("%H:%M", time.localtime()) + "\n" + phoneText)
+            else:
+                lcdInterface.setText(str(check_output(['hostname', '-I'])))
+
+        if not switch2pin:
+            lcdInterface.setText_norefresh(time.strftime("%H:%M", time.localtime()) + "\n" + phoneText)
+        else:
+            lcdInterface.setText_norefresh(str(check_output(['hostname', '-I'])))
 
     # If it is a new day, add a new day to phonedata
     if time.localtime().tm_mday != today:
@@ -198,3 +215,4 @@ while True:
 
     # Delay for server thread to do its tasks (delay might have to be lower myb .1 for button to work)
     time.sleep(0.1)
+	

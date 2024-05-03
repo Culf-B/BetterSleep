@@ -42,8 +42,8 @@ class SimpleHandler(BaseHTTPRequestHandler):
             self.contentType = "text/html"
             self.path = PATH + 'index.html'
         elif self.path == '/statistik':
-            self.contentType = "text/html"
-            self.path = PATH + 'statistik.html'
+            self.contentType = "application/json"
+            self.path = 'phonedata.json'
         elif self.path == '/indstillinger':
             self.contentType = "text/html"
             self.path = PATH + 'indstillinger.html'

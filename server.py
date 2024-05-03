@@ -4,7 +4,7 @@ import cgi
 import json
 
 # Load setup data
-with open("serverSetup.json", "r") as f:
+with open("./serverSetup.json", "r") as f:
     setupData = json.load(f)
     PATH = setupData["PATH"]
     PORT = setupData["PORT"]
@@ -43,7 +43,7 @@ class SimpleHandler(BaseHTTPRequestHandler):
             self.path = PATH + 'index.html'
         elif self.path == '/statistik':
             self.contentType = "application/json"
-            self.path = 'phonedata.json'
+            self.path = 'phoneData.json'
         elif self.path == '/indstillinger':
             self.contentType = "text/html"
             self.path = PATH + 'indstillinger.html'
